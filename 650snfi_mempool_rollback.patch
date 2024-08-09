@@ -1,0 +1,39 @@
+diff -u a/plat/mediatek/apsoc_common/drivers/snfi/mtk-snand-atf.c b/plat/mediatek/apsoc_common/drivers/snfi/mtk-snand-atf.c
+--- a/plat/mediatek/apsoc_common/drivers/snfi/mtk-snand-atf.c	2024-08-08 13:27:35.765031138 -0400
++++ b/plat/mediatek/apsoc_common/drivers/snfi/mtk-snand-atf.c	2024-08-09 09:12:36.536066647 -0400
+@@ -6,8 +6,9 @@
+  */
+ 
+ #include "mtk-snand-def.h"
++#include "bl2_plat_setup.h"
+ 
+-static void *buf_pool;
++static uintptr_t buf_pool = QSPI_BUF_OFFSET;
+ 
+ int mtk_snand_read_range(struct mtk_snand *snf, uint64_t addr, uint64_t maxaddr,
+ 			 void *buf, size_t len, size_t *retlen,
+@@ -75,18 +76,18 @@
+ 
+ void mtk_snand_set_buf_pool(void *buf)
+ {
+-	buf_pool = buf;
++	buf_pool = (uintptr_t)buf;
+ }
+ 
+ void *mtk_snand_mem_alloc(size_t size)
+ {
+-	void *buf = buf_pool;
++	uintptr_t base;
+ 
+-	if (!buf_pool)
+-		return NULL;
++	buf_pool += 0x7f;
++	buf_pool &= ~0x7f;
+ 
++	base = buf_pool;
+ 	buf_pool += size;
+ 
+-	return buf;
++	return (void *)base;
+ }
+-
